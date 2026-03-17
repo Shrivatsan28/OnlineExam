@@ -81,12 +81,22 @@ WSGI_APPLICATION = 'online_exam_ai.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': dj_database_url.config(
-        default='postgresql://postgres:Shri@2803@localhost:5432/online_exam_db',
-        conn_max_age=60
-    )
-}
+# Check if we have a provided database URL (like on Railway).
+# If not, use SQLite as a safe fallback (e.g. during collectstatic build phase)
+if 'DATABASE_URL' in os.environ:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.environ.get('DATABASE_URL'),
+            conn_max_age=60
+        )
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # Cache sessions in DB with memory cache — reduces session read latency for 120+ concurrent users
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
