@@ -1,7 +1,7 @@
 {
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "python manage.py collectstatic --noinput && python manage.py migrate"
+    "buildCommand": "python manage.py collectstatic --noinput && python manage.py migrate && python manage.py shell < create_admin.py"
   },
   "deploy": {
     "startCommand": "gunicorn online_exam_ai.wsgi",
