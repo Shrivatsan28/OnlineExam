@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="max-width: 450px; margin: 0 auto;">
+    <div class="card">
+        <h2 style="margin-top: 0;">{% if role %}{{ role }} {% endif %}Login</h2>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-muted)">{{ field.label }}</label>
+                <input type="{{ field.field.widget.input_type }}" name="{{ field.name }}" class="btn"
+                    style="width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.05); color: #fff; text-align: left; padding: 0.8rem;"
+                    required>
+            </div>
+            {% endfor %}
+
+            {% if error %}
+            <p style="color: var(--danger)">{{ error }}</p>
+            {% endif %}
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem;">Login</button>
+
+            <div style="text-align: center; margin-top: 1rem;">
+                <a href="{% url 'password_reset' %}"
+                    style="color: var(--primary); text-decoration: none; font-size: 0.9rem;">Forgot Password?</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

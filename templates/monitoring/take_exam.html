@@ -1,0 +1,488 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    /* ===== TIMER BAR ===== */
+    .timer-bar {
+        position: sticky;
+        top: 0;
+        z-index: 200;
+        background: var(--card-bg, #1e293b);
+        border-bottom: 2px solid var(--accent);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.6rem 1.2rem;
+        gap: 1rem;
+    }
+
+    .timer-label-text {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--text-muted);
+        white-space: nowrap;
+    }
+
+    .timer-display {
+        font-size: 1.8rem;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        color: var(--accent);
+        min-width: 80px;
+        text-align: center;
+    }
+
+    /* Red pulse when ≤ 10 s remain on current question */
+    .timer-bar.urgent .timer-display {
+        color: #ef4444;
+        animation: pulse-anim 0.7s infinite;
+    }
+
+    @keyframes pulse-anim {
+        0%, 100% { transform: scale(1); }
+        50%       { transform: scale(1.06); }
+    }
+
+    .progress-wrap {
+        background: rgba(255,255,255,0.08);
+        border-radius: 99px;
+        height: 6px;
+        flex: 1;
+        max-width: 200px;
+    }
+    .progress-fill {
+        height: 100%;
+        background: var(--accent);
+        border-radius: 99px;
+        transition: width 0.3s ease, background 0.3s ease;
+    }
+
+    /* ===== MAIN EXAM LAYOUT ===== */
+    .exam-wrapper {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 1.5rem 1rem;
+    }
+
+    .exam-title {
+        font-size: clamp(1.2rem, 4vw, 1.8rem);
+        font-weight: 700;
+        margin-bottom: 0.3rem;
+    }
+    .exam-meta {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        margin-bottom: 1.5rem;
+    }
+
+    /* ===== QUESTION CARDS ===== */
+    .question-card {
+        background: var(--card-bg);
+        border-radius: 14px;
+        padding: 1.5rem;
+        border: 1px solid rgba(255,255,255,0.08);
+        margin-bottom: 1.5rem;
+    }
+
+    /* Highlight the currently active question (desktop) */
+    .question-card.active-q {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 2px rgba(99,102,241,0.18);
+    }
+
+    .question-text {
+        font-size: clamp(0.95rem, 2.5vw, 1.1rem);
+        font-weight: 500;
+        margin-bottom: 1rem;
+        line-height: 1.6;
+    }
+
+    .options-grid {
+        display: grid;
+        gap: 0.7rem;
+    }
+
+    .option-label {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        padding: 0.75rem 1rem;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 0.95rem;
+        transition: background 0.2s, border-color 0.2s;
+    }
+
+    .option-label:hover {
+        background: rgba(255,255,255,0.09);
+        border-color: var(--accent);
+    }
+
+    .option-label input[type="radio"] {
+        accent-color: var(--accent);
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+    }
+
+    .mobile-navigation { display: none; }
+
+    .submit-btn {
+        padding: 0.9rem 3rem;
+        font-size: 1rem;
+        border-radius: 10px;
+        margin-top: 0.5rem;
+    }
+
+    /* ===== OVERLAYS ===== */
+    .overlay-box {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(15, 23, 42, 0.97);
+        border: 2px solid var(--accent);
+        border-radius: 20px;
+        padding: 2rem;
+        z-index: 1000;
+        display: none;
+        text-align: center;
+        box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+        max-width: 380px;
+        width: 90%;
+    }
+
+    /* Auto-advance toast (bottom) */
+    #advance-toast {
+        position: fixed;
+        bottom: 1.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(15,23,42,0.93);
+        border: 1px solid var(--accent);
+        border-radius: 10px;
+        padding: 0.7rem 1.6rem;
+        font-size: 0.9rem;
+        color: #e2e8f0;
+        z-index: 500;
+        display: none;
+        white-space: nowrap;
+    }
+
+    #screen-lock {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: rgba(0,0,0,0.97);
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 1.5rem;
+    }
+
+    /* ===== MOBILE ===== */
+    @media (max-width: 640px) {
+        .exam-wrapper { padding: 0.8rem 0.6rem; }
+        .question-card { display: none; margin-bottom: 0; }
+        .question-card.active { display: block; }
+        .desktop-submit { display: none; }
+        .mobile-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 1rem 0;
+        }
+        .mobile-navigation .btn {
+            flex: 1;
+            text-align: center;
+            padding: 0.75rem;
+        }
+        .q-counter {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+        .mobile-submit-btn { display: none; }
+        .mobile-submit-btn.visible {
+            display: block;
+            width: 100%;
+            margin-top: 1rem;
+            padding: 0.9rem;
+            font-size: 1rem;
+        }
+    }
+
+    /* ===== TABLET / DESKTOP ===== */
+    @media (min-width: 641px) {
+        .question-card { display: block !important; }
+        .desktop-submit { display: inline-block; }
+        .mobile-navigation { display: none !important; }
+        .mobile-submit-btn { display: none !important; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- STICKY TIMER BAR -->
+<div class="timer-bar" id="timer-bar">
+    <span class="timer-label-text" id="timer-status-label">⏱ Q<span id="q-num">1</span> / {{ questions.count }}</span>
+    <div class="timer-display" id="exam-timer">1:00</div>
+    <div class="progress-wrap">
+        <div class="progress-fill" id="progress-fill" style="width:100%;"></div>
+    </div>
+</div>
+
+<!-- EXAM CONTENT -->
+<div class="exam-wrapper">
+    <h1 class="exam-title">{{ exam.title }}</h1>
+    <p class="exam-meta">{{ questions.count }} Questions &nbsp;|&nbsp; 60 seconds per question</p>
+
+    <form id="exam-form" method="post" action="{% url 'submit_exam' exam.id %}">
+        {% csrf_token %}
+
+        {% for q in questions %}
+        <div class="question-card {% if forloop.first %}active active-q{% endif %}" data-index="{{ forloop.counter0 }}">
+            <p class="question-text">{{ forloop.counter }}. {{ q.question_text }}</p>
+            <div class="options-grid">
+                <label class="option-label">
+                    <input type="radio" name="question_{{ q.id }}" value="A"> {{ q.option_a }}
+                </label>
+                <label class="option-label">
+                    <input type="radio" name="question_{{ q.id }}" value="B"> {{ q.option_b }}
+                </label>
+                <label class="option-label">
+                    <input type="radio" name="question_{{ q.id }}" value="C"> {{ q.option_c }}
+                </label>
+                <label class="option-label">
+                    <input type="radio" name="question_{{ q.id }}" value="D"> {{ q.option_d }}
+                </label>
+            </div>
+            {% if forloop.last %}
+            <button type="submit" class="btn btn-primary mobile-submit-btn" id="mobile-submit">Submit Exam</button>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <div class="desktop-submit">
+            <button type="submit" class="btn btn-primary submit-btn">Submit Exam</button>
+        </div>
+    </form>
+
+    <!-- Mobile Navigation -->
+    <div class="mobile-navigation" id="mobile-nav">
+        <button class="btn" id="prev-btn" onclick="changeMobileQuestion(-1)" style="background:rgba(255,255,255,0.07);">← Prev</button>
+        <span class="q-counter" id="m-q-counter">1 / {{ questions.count }}</span>
+        <button class="btn btn-primary" id="next-btn" onclick="changeMobileQuestion(1)">Next →</button>
+    </div>
+</div>
+
+<!-- AUTO ADVANCE TOAST -->
+<div id="advance-toast">⏩ Time's up! Moving to next question…</div>
+
+<!-- AUTO SUBMIT NOTICE -->
+<div id="auto-submit-info" class="overlay-box">
+    <div style="font-size:2.5rem; margin-bottom:0.5rem;">📤</div>
+    <h2 style="margin-bottom:0.5rem;">Submitting Exam</h2>
+    <p>All question time used. Auto-submitting now…</p>
+</div>
+
+<!-- FULLSCREEN LOCK -->
+<div id="screen-lock">
+    <div style="font-size:4rem;">⏳</div>
+    <h1 style="color:var(--accent); font-size:2rem; margin:0;">Time Expired</h1>
+    <p style="color:#94a3b8; font-size:1.1rem; max-width:400px;">
+        Your exam time has concluded.<br>Submission in progress…
+    </p>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+//  PER-QUESTION 60-SECOND TIMER
+//  Each question gets exactly 60 seconds.
+//  On expiry → auto-advance to next question.
+//  Last question expiry → auto-submit the form.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const examId       = "{{ exam.id }}";
+const TOTAL_Q      = {{ questions.count }};
+const Q_TIME       = 60;          // seconds per question
+
+const timerDisplay = document.getElementById('exam-timer');
+const timerBar     = document.getElementById('timer-bar');
+const progressFill = document.getElementById('progress-fill');
+const timerLabel   = document.getElementById('timer-status-label');
+const qNumSpan     = document.getElementById('q-num');
+
+// ─── Desktop: track which question is "active" for highlighting ──────────────
+let desktopActiveIdx = 0;
+const allCards = document.querySelectorAll('.question-card');
+
+function setDesktopActive(idx) {
+    allCards.forEach(c => c.classList.remove('active-q'));
+    if (allCards[idx]) {
+        allCards[idx].classList.add('active-q');
+        // Smooth-scroll the newly active card into view
+        allCards[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    desktopActiveIdx = idx;
+    qNumSpan.textContent = idx + 1;
+    timerLabel.textContent = `⏱ Q${idx + 1} / ${TOTAL_Q}`;
+}
+
+// ─── Timer state ─────────────────────────────────────────────────────────────
+let timeLeft      = Q_TIME;
+let examSubmitted = false;
+let countdownInterval;
+
+function pad(n) { return String(n).padStart(2, '0'); }
+
+function refreshDisplay() {
+    const m = Math.floor(timeLeft / 60);
+    const s = timeLeft % 60;
+    timerDisplay.textContent = `${pad(m)}:${pad(s)}`;
+
+    const pct = (timeLeft / Q_TIME) * 100;
+    progressFill.style.width = pct + '%';
+
+    if (timeLeft <= 10) {
+        progressFill.style.background = '#ef4444';
+        timerDisplay.style.color      = '#ef4444';
+        timerBar.classList.add('urgent');
+    } else {
+        progressFill.style.background = '';   // reset to CSS var(--accent)
+        timerDisplay.style.color      = '';
+        timerBar.classList.remove('urgent');
+    }
+}
+
+function resetQuestionTimer() {
+    timeLeft = Q_TIME;
+    refreshDisplay();
+}
+
+// ─── Auto-advance / auto-submit ───────────────────────────────────────────────
+function onQuestionTimeExpired() {
+    const isLast = (desktopActiveIdx >= TOTAL_Q - 1);
+
+    if (isLast) {
+        // Last question → auto-submit
+        doAutoSubmit();
+    } else {
+        // Show brief toast
+        const toast = document.getElementById('advance-toast');
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 1800);
+
+        // Advance
+        const next = desktopActiveIdx + 1;
+        setDesktopActive(next);
+
+        // Also keep mobile view in sync
+        if (next < TOTAL_Q) {
+            showMobileQuestion(next);
+        }
+
+        resetQuestionTimer();
+    }
+}
+
+function doAutoSubmit() {
+    if (examSubmitted) return;
+    examSubmitted = true;
+    clearInterval(countdownInterval);
+
+    document.getElementById('auto-submit-info').style.display = 'block';
+    // Disable inputs to prevent last-second edits
+    document.querySelectorAll('#exam-form input:not([name=csrfmiddlewaretoken]), #exam-form button')
+            .forEach(el => el.disabled = true);
+
+    setTimeout(() => {
+        document.getElementById('auto-submit-info').style.display = 'none';
+        document.getElementById('screen-lock').style.display = 'flex';
+        setTimeout(() => document.getElementById('exam-form').submit(), 800);
+    }, 2000);
+}
+
+// ─── Start the countdown ─────────────────────────────────────────────────────
+refreshDisplay();
+
+countdownInterval = setInterval(() => {
+    if (examSubmitted) return;
+    timeLeft--;
+    refreshDisplay();
+    if (timeLeft <= 0) {
+        onQuestionTimeExpired();
+    }
+}, 1000);
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  MOBILE ONE-BY-ONE NAVIGATION
+// ─────────────────────────────────────────────────────────────────────────────
+let mobileCurrentQ = 0;
+const mCounter     = document.getElementById('m-q-counter');
+const prevBtn      = document.getElementById('prev-btn');
+const nextBtn      = document.getElementById('next-btn');
+const mobileSubmit = document.getElementById('mobile-submit');
+
+function showMobileQuestion(idx) {
+    allCards.forEach(c => c.classList.remove('active'));
+    if (allCards[idx]) allCards[idx].classList.add('active');
+    mobileCurrentQ = idx;
+
+    if (mCounter) mCounter.textContent = `${idx + 1} / ${TOTAL_Q}`;
+    if (prevBtn)  { prevBtn.disabled = idx === 0; prevBtn.style.opacity = idx === 0 ? '0.4' : '1'; }
+
+    const isLast = idx === TOTAL_Q - 1;
+    if (nextBtn)      nextBtn.style.display = isLast ? 'none' : '';
+    if (mobileSubmit) mobileSubmit.classList.toggle('visible', isLast);
+}
+
+function changeMobileQuestion(dir) {
+    const next = mobileCurrentQ + dir;
+    if (next >= 0 && next < TOTAL_Q) {
+        showMobileQuestion(next);
+        setDesktopActive(next);   // keep desktop highlight + timer label in sync
+        resetQuestionTimer();     // manual navigation also resets the timer
+    }
+}
+
+showMobileQuestion(0);
+setDesktopActive(0);
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  TAB-SWITCH DETECTION  (unchanged from original)
+// ─────────────────────────────────────────────────────────────────────────────
+let lastTabLog = 0;
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) return;
+    const now = Date.now();
+    if (now - lastTabLog < 5000) return;
+    lastTabLog = now;
+    fetch("{% url 'log_monitoring_event' %}", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ exam_id: examId, event_type: 'tab_switch', details: 'Student switched tab.' })
+    }).then(r => r.json()).then(data => {
+        if (data.auto_submit) {
+            clearInterval(countdownInterval);
+            examSubmitted = true;
+            const lock = document.getElementById('screen-lock');
+            lock.querySelector('h1').textContent = 'Exam Terminated';
+            lock.querySelector('p').innerHTML = 'Multiple cheating violations detected.<br>Your exam has been auto-submitted.';
+            lock.style.display = 'flex';
+        }
+    });
+});
+</script>
+{% endblock %}

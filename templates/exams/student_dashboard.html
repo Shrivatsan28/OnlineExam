@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h2>Student Dashboard</h2>
+</div>
+
+<div class="card">
+    <h3>Available Exams</h3>
+    {% if available_exams %}
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+            <thead>
+                <tr style="text-align: left; color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <th style="padding: 1rem;">Title</th>
+                    <th style="padding: 1rem;">Start Time</th>
+                    <th style="padding: 1rem;">Duration</th>
+                    <th style="padding: 1rem;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for exam in available_exams %}
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 1rem;">{{ exam.title }}</td>
+                    <td style="padding: 1rem;">{{ exam.start_time|date:"M d, Y H:i" }}</td>
+                    <td style="padding: 1rem;">{{ exam.duration_minutes }} mins</td>
+                    <td style="padding: 1rem;">
+                        <a href="{% url 'take_exam' exam.id %}" class="btn btn-primary"
+                            style="padding: 0.4rem 1rem; font-size: 0.9rem;">Start Exam</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="color: var(--text-muted)">No exams allocated to you yet.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3>My Results</h3>
+    {% if my_results %}
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+            <thead>
+                <tr style="text-align: left; color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <th style="padding: 1rem;">Exam</th>
+                    <th style="padding: 1rem;">Score</th>
+                    <th style="padding: 1rem;">Status</th>
+                    <th style="padding: 1rem;">Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for res in my_results %}
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 1rem;">{{ res.exam.title }}</td>
+                    <td style="padding: 1rem;">{{ res.score }}%</td>
+                    <td style="padding: 1rem;">
+                        {% if res.status == 'PASS' %}
+                        <span style="color: var(--success)">PASS</span>
+                        {% else %}
+                        <span style="color: var(--danger)">FAIL</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 1rem;">{{ res.submitted_at|date:"M d, Y" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="color: var(--text-muted)">You haven't appeared for any exams yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

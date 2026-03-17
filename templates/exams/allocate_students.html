@@ -1,0 +1,47 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <h3 style="margin-top: 0;">Allocate Students to {{ exam.title }}</h3>
+    <form method="post">
+        {% csrf_token %}
+        <div style="margin-bottom: 2rem;">
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Select students to enroll in this exam. An invite email will be sent to them automatically.</p>
+            <p style="font-weight: 600; color: var(--accent);">Maximum Students Allowed: {{ exam.student_limit }}</p>
+
+            <div style="margin-bottom: 1rem;">
+                <label style="display: flex; align-items: center; cursor: pointer; color: var(--primary); font-weight: bold;">
+                    <input type="checkbox" id="select-all-btn" style="width: 20px; height: 20px; margin-right: 1rem;">
+                    Select / Deselect All
+                </label>
+            </div>
+
+            <div style="max-height: 300px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 1rem;">
+                {% for student in students %}
+                <label style="display: flex; align-items: center; margin-bottom: 1rem; cursor: pointer;">
+                    <input type="checkbox" name="students" value="{{ student.id }}" style="width: 20px; height: 20px; margin-right: 1rem;">
+                    <div>
+                        <p style="margin: 0; font-weight: 500;">{{ student.first_name }} {{ student.last_name }}</p>
+                        <p style="margin: 0; font-size: 0.8rem; color: var(--text-muted);">{{ student.username }} ({{ student.email }})</p>
+                    </div>
+                </label>
+                {% empty %}
+                <p style="text-align: center; color: var(--text-muted);">No student accounts found.</p>
+                {% endfor %}
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem;">Allocate Selected & Notify</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('select-all-btn').addEventListener('change', function (e) {
+        const checkboxes = document.querySelectorAll('input[name="students"]');
+        checkboxes.forEach(cb => {
+            cb.checked = e.target.checked;
+        });
+    });
+</script>
+{% endblock %}

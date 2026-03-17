@@ -1,0 +1,54 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+
+    <div style="margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <h3 style="margin: 0;">Add Question to {{ exam.title }}</h3>
+            <span style="font-size: 0.9rem; color: var(--text-muted);">{{ current_count }} / {{ total_required }}</span>
+        </div>
+        <div style="background: rgba(255,255,255,0.08); border-radius: 99px; height: 8px; overflow: hidden;">
+            <div style="height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--primary), var(--accent)); width: {% widthratio current_count total_required 100 %}%; transition: width 0.3s ease;"></div>
+        </div>
+        <p style="margin: 0.5rem 0 0; font-size: 0.85rem; color: var(--text-muted);">
+            {{ remaining }} question{{ remaining|pluralize }} remaining
+        </p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div style="margin-bottom: 1rem;">
+            <label style="display: block; margin-bottom: 0.5rem; color: var(--text-muted)">{{ field.label }}</label>
+            {{ field }}
+        </div>
+        {% endfor %}
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            {% if remaining > 1 %}
+            <button type="submit" name="add_another" class="btn"
+                style="flex: 1; border: 1px solid var(--primary); color: var(--primary);">Save &amp; Add Another</button>
+            {% endif %}
+            <button type="submit" class="btn btn-primary" style="flex: 1;">
+                {% if remaining == 1 %}
+                Save &amp; Finalize
+                {% else %}
+                Finalize ({{ remaining }} left)
+                {% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+    input, textarea, select {
+        width: 100%;
+        padding: 0.8rem;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
+        box-sizing: border-box;
+    }
+</style>
+{% endblock %}

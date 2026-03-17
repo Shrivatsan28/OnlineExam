@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom: 2rem;">Admin Dashboard</h1>
+
+<div
+    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 3rem;">
+    <div class="card" style="text-align: center;">
+        <h3 style="color: var(--text-muted); margin-bottom: 0.5rem;">Total Students</h3>
+        <p style="font-size: 2.5rem; font-weight: 700; color: var(--primary); margin: 0;">{{ total_students }}</p>
+    </div>
+    <div class="card" style="text-align: center;">
+        <h3 style="color: var(--text-muted); margin-bottom: 0.5rem;">Total Staff</h3>
+        <p style="font-size: 2.5rem; font-weight: 700; color: var(--accent); margin: 0;">{{ total_staff }}</p>
+    </div>
+    <div class="card" style="text-align: center;">
+        <h3 style="color: var(--text-muted); margin-bottom: 0.5rem;">Total Exams</h3>
+        <p style="font-size: 2.5rem; font-weight: 700; color: var(--success); margin: 0;">{{ total_exams }}</p>
+    </div>
+</div>
+
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem;">Recent Monitoring Logs</h2>
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <th style="padding: 1rem;">Student</th>
+                    <th style="padding: 1rem;">Exam</th>
+                    <th style="padding: 1rem;">Event</th>
+                    <th style="padding: 1rem;">Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in recent_logs %}
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 1rem;">{{ log.student.username }}</td>
+                    <td style="padding: 1rem;">{{ log.exam.title }}</td>
+                    <td style="padding: 1rem;">
+                        <span
+                            style="padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.8rem; background: {% if log.event_type == 'tab_switch' %}rgba(239, 68, 68, 0.2); color: #fca5a5;{% else %}rgba(56, 189, 248, 0.2); color: #7dd3fc;{% endif %}">
+                            {{ log.event_type|upper }}
+                        </span>
+                    </td>
+                    <td style="padding: 1rem; color: var(--text-muted);">{{ log.timestamp|date:"H:i:s" }}</td>
+
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="padding: 2rem; text-align: center; color: var(--text-muted);">No recent logs
+                        found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div style="margin-top: 1.5rem; text-align: right;">
+        <a href="{% url 'view_logs_all' %}" style="color: var(--primary); text-decoration: none; font-weight: 500;">View
+            All Logs →</a>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+    <div class="card">
+        <h3>Quick Actions</h3>
+        <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
+            <a href="{% url 'manage_staff' %}" class="btn btn-primary" style="text-align: center;">Manage Staff</a>
+            <a href="{% url 'manage_students' %}" class="btn btn-primary"
+                style="text-align: center; background: var(--accent);">Manage Students</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

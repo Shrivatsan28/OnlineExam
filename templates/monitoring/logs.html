@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Live Monitoring Logs{% endblock %}
+
+{% block extra_css %}
+<meta http-equiv="refresh" content="30">
+{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h1>Live Monitoring Logs</h1>
+    <div>
+        <span style="color: var(--text-muted); font-size: 0.9rem; margin-right: 1rem;">Auto-refreshing every 30s</span>
+        <a href="." class="btn btn-primary" style="font-size: 0.8rem;">Refresh Now</a>
+    </div>
+</div>
+
+<div class="card" style="padding: 0; overflow: hidden;">
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02);">
+                    <th style="padding: 1.25rem 1rem;">Violation Type</th>
+                    <th style="padding: 1.25rem 1rem;">Student Details</th>
+                    <th style="padding: 1.25rem 1rem;">Exam</th>
+                    <th style="padding: 1.25rem 1rem;">Time</th>
+                    <th style="padding: 1.25rem 1rem;">Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s;"
+                    onmouseover="this.style.background='rgba(255,255,255,0.02)'"
+                    onmouseout="this.style.background='transparent'">
+
+                    <td style="padding: 1rem;">
+                        <span
+                            style="display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; background: {% if log.event_type == 'tab_switch' %}rgba(129, 140, 248, 0.2); color: #a5b4fc;{% else %}rgba(239, 68, 68, 0.2); color: #fca5a5;{% endif %}">
+                            {{ log.event_type|title }}
+                        </span>
+                    </td>
+                    <td style="padding: 1rem;">
+                        <div style="font-weight: 500;">{{ log.student.get_full_name }}</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">@{{ log.student.username }}</div>
+                    </td>
+                    <td style="padding: 1rem; font-size: 0.9rem;">{{ log.exam.title }}</td>
+                    <td style="padding: 1rem;">
+                        <div style="font-weight: 500;">{{ log.timestamp|date:"H:i:s" }}</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">{{ log.timestamp|date:"d M Y" }}</div>
+                    </td>
+                    <td style="padding: 1rem; font-size: 0.85rem; color: var(--text-muted); max-width: 200px;">
+                        {{ log.details }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="padding: 4rem; text-align: center; color: var(--text-muted);">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">🛡️</div>
+                        <h3>No violations detected</h3>
+                        <p>Currently all students are following the rules.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

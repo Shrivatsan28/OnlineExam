@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h2>Results for Exam: {{ exam.title }}</h2>
+    <a href="{% url 'staff_dashboard' %}" class="btn"
+        style="border: 1px solid rgba(255,255,255,0.2); color: var(--text);">Back to Dashboard</a>
+</div>
+
+<div class="card">
+    <h3>Student Performances</h3>
+    {% if results %}
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+            <thead>
+                <tr style="text-align: left; color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <th style="padding: 1rem;">Student Name</th>
+                    <th style="padding: 1rem;">Username / Email</th>
+                    <th style="padding: 1rem;">Score (Marks)</th>
+                    <th style="padding: 1rem;">Status</th>
+                    <th style="padding: 1rem;">Submission Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for res in results %}
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 1rem;">{{ res.student.get_full_name|default:"-" }}</td>
+                    <td style="padding: 1rem;">{{ res.student.username }} <br> <small
+                            style="color: var(--text-muted);">{{ res.student.email }}</small></td>
+                    <td style="padding: 1rem; font-weight: 600;">{{ res.correct_answers }} / {{ res.total_questions }}
+                        ({{ res.score }}%)</td>
+                    <td style="padding: 1rem;">
+                        {% if res.status == 'PASS' %}
+                        <span style="color: var(--success); font-weight: 600;">PASS</span>
+                        {% elif res.status == 'CHEATING' %}
+                        <span style="color: #fb923c; font-weight: 600;">⚠ CHEATING</span>
+                        {% else %}
+                        <span style="color: var(--danger); font-weight: 600;">FAIL</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 1rem;">{{ res.submitted_at|date:"M d, Y H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="color: var(--text-muted)">No students have submitted this exam yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

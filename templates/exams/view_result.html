@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card" style="max-width: 500px; margin: 0 auto; text-align: center;">
+    <h1 style="color: var(--primary); font-size: 3rem; margin-bottom: 0;">{{ result.score }}%</h1>
+    <p style="color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px;">{{ result.status }}</p>
+
+    <div style="margin: 2rem 0; padding: 2rem; background: rgba(255,255,255,0.03); border-radius: 12px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+            <span>Total Questions</span>
+            <span>{{ result.total_questions }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+            <span>Correct Answers</span>
+            <span style="color: var(--success)">{{ result.correct_answers }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+            <span>Submitted On</span>
+            <span>{{ result.submitted_at|date:"M d, Y H:i" }}</span>
+        </div>
+    </div>
+
+    <a href="{% url 'student_dashboard' %}" class="btn btn-primary" style="padding: 1rem 3rem;">Back to Dashboard</a>
+</div>
+{% endblock %}

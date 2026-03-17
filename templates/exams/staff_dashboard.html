@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h2>Staff Dashboard</h2>
+    <div style="display: flex; gap: 1rem;">
+        <a href="{% url 'manage_students' %}" class="btn"
+            style="background: rgba(99,179,237,0.15); color: var(--primary);">Manage Students</a>
+        <a href="{% url 'create_exam' %}" class="btn btn-primary">+ Create New Exam</a>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Managed Exams</h3>
+    {% if exams %}
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+            <thead>
+                <tr style="text-align: left; color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <th style="padding: 1rem;">Title</th>
+                    <th style="padding: 1rem;">Timing</th>
+                    <th style="padding: 1rem;">Students</th>
+                    <th style="padding: 1rem;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for exam in exams %}
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 1rem;">{{ exam.title }}</td>
+                    <td style="padding: 1rem;">{{ exam.start_time|date:"M d H:i" }}</td>
+                    <td style="padding: 1rem;">{{ exam.allocated_students.count }} / {{ exam.student_limit }}</td>
+                    <td style="padding: 1rem;">
+                        <a href="{% url 'view_questions' exam.id %}"
+                            style="color: var(--primary); text-decoration: none; margin-right: 1rem;">Questions</a>
+                        <a href="{% url 'allocate_students' exam.id %}"
+                            style="color: var(--primary); text-decoration: none; margin-right: 1rem;">Allocate</a>
+                        <a href="{% url 'edit_exam' exam.id %}"
+                            style="color: #fb923c; text-decoration: none; margin-right: 1rem;">Edit</a>
+                        <a href="{% url 'view_logs_exam' exam.id %}"
+                            style="color: var(--accent); text-decoration: none; margin-right: 1rem;">Logs</a>
+                        <a href="{% url 'view_exam_results' exam.id %}"
+                            style="color: var(--text); text-decoration: none; font-weight: 600;">Results</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="color: var(--text-muted)">You haven't created any exams yet.</p>
+    {% endif %}
+</div>
+{% endblock %}
