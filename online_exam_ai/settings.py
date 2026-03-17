@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,9 +25,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-4!3k@yrih2wx0v4*s0!c=k%*mrc@z9m20f@dg+uo*_r)=)^m+a'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', '') != 'False'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = ['https://*.up.railway.app']
 
 
 # Application definition
@@ -44,6 +47,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -78,19 +82,10 @@ WSGI_APPLICATION = 'online_exam_ai.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'online_exam_db',
-        'USER': 'postgres',
-        'PASSWORD': 'Shri@2803',
-        'HOST': 'localhost',
-        'PORT': '5432',
-        # Reuse DB connections across requests (avoids reconnect overhead for each PC)
-        'CONN_MAX_AGE': 60,
-        'OPTIONS': {
-            'connect_timeout': 10,
-        },
-    }
+    'default': dj_database_url.config(
+        default='postgresql://postgres:Shri@2803@localhost:5432/online_exam_db',
+        conn_max_age=60
+    )
 }
 
 # Cache sessions in DB with memory cache — reduces session read latency for 120+ concurrent users

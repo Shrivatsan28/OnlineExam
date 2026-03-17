@@ -1,0 +1,10 @@
+{
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "python manage.py collectstatic --noinput && python manage.py migrate"
+  },
+  "deploy": {
+    "startCommand": "gunicorn online_exam_ai.wsgi",
+    "restartPolicyType": "ON_FAILURE"
+  }
+}
