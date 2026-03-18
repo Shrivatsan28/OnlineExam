@@ -7,6 +7,8 @@ from .forms import StudentSignUpForm, StaffCreationForm, StudentEditForm, StaffE
 from django.contrib import messages
 from monitoring.models import MonitoringLog
 from exams.models import Exam
+from .email_utils import send_student_email
+import datetime
 
 def home(request):
     if not request.user.is_authenticated:
@@ -43,6 +45,25 @@ def user_login(request, role_expected=None):
                         'error': f'Invalid login for {role_expected} role.'
                     })
                 login(request, user)
+
+                # ── Email: Login Alert (students only) ──────────────────────
+                if user.role == 'STUDENT' and user.email:
+                    now_ist = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=5, minutes=30)))
+                    ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', 'Unknown'))
+                    send_student_email(
+                        subject="🔔 Login Alert – Invigilo Exam System",
+                        message=(
+                            f"Hello {user.get_full_name() or user.username},\n\n"
+                            f"A new login was detected on your Invigilo account.\n\n"
+                            f"  Username : {user.username}\n"
+                            f"  Time     : {now_ist.strftime('%d %b %Y, %I:%M %p')} IST\n"
+                            f"  IP       : {ip}\n\n"
+                            f"If this wasn't you, please contact your exam administrator immediately.\n\n"
+                            f"Invigilo Exam System"
+                        ),
+                        recipient_email=user.email,
+                    )
+
                 if user.is_admin():
                     return redirect('admin_dashboard')
                 return redirect('home')

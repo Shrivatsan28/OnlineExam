@@ -10,6 +10,7 @@ urlpatterns = [
     path('staff/edit-question/<int:question_id>/', views.edit_question, name='edit_question'),
     path('staff/delete-question/<int:question_id>/', views.delete_question, name='delete_question'),
     path('staff/exam-results/<int:exam_id>/', views.view_exam_results, name='view_exam_results'),
+    path('staff/exam-results/<int:exam_id>/export/', views.export_exam_results_csv, name='export_exam_results_csv'),
     path('staff/edit-exam/<int:exam_id>/', views.edit_exam, name='edit_exam'),
     path('student/dashboard/', views.student_dashboard, name='student_dashboard'),
     path('student/enroll/<int:exam_id>/', views.enroll_exam, name='enroll_exam'),

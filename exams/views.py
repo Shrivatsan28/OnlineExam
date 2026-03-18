@@ -1,4 +1,7 @@
+import random
+import csv
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponse
 from django.contrib import messages
 from accounts.decorators import role_required
 from .models import Exam, Question, Result
@@ -7,6 +10,7 @@ from accounts.models import CustomUser
 from django.core.mail import send_mail
 from django.conf import settings
 from monitoring.models import MonitoringLog, AlertCounter
+from accounts.email_utils import send_student_email
 
 @role_required(['STAFF', 'ADMIN'])
 def staff_dashboard(request):
@@ -172,12 +176,32 @@ def view_result(request, result_id):
 @role_required(['STUDENT'])
 def take_exam(request, exam_id):
     exam = get_object_or_404(Exam, id=exam_id, allocated_students=request.user)
-    questions = exam.questions.all()
     # Check if already submitted
     if Result.objects.filter(student=request.user, exam=exam).exists():
         messages.warning(request, "You have already submitted this exam.")
         return redirect('student_dashboard')
-    
+
+    # ── Email: Exam Started ──────────────────────────────────────────────
+    if request.user.email:
+        send_student_email(
+            subject=f"📝 Exam Started – {exam.title}",
+            message=(
+                f"Hello {request.user.get_full_name() or request.user.username},\n\n"
+                f"Your exam has begun. Good luck!\n\n"
+                f"  Exam      : {exam.title}\n"
+                f"  Questions : {exam.total_questions}\n"
+                f"  Time/Q    : 60 seconds per question\n"
+                f"  Pass Mark : {exam.pass_marks}%\n\n"
+                f"Focus, stay honest, and do your best.\n\n"
+                f"Invigilo Exam System"
+            ),
+            recipient_email=request.user.email,
+        )
+
+    # Shuffle questions so each student sees a different order
+    questions = list(exam.questions.all())
+    random.shuffle(questions)
+
     return render(request, 'monitoring/take_exam.html', {
         'exam': exam,
         'questions': questions
@@ -230,13 +254,28 @@ def submit_exam(request, exam_id):
             status=status
         )
         
-        # Send Result Email
-        subject = f"Exam Result: {exam.title}"
-        message = f"Hello {request.user.get_full_name() or request.user.username},\n\nYou have completed the exam: {exam.title}.\n\nYour Score: {score}%\nResult: {status}\n\nThank you for participating."
-        try:
-            send_mail(subject, message, settings.EMAIL_HOST_USER, [request.user.email])
-        except Exception as e:
-            print(f"Failed to send result email to {request.user.email}: {e}")
+        # ── Email: Exam Result ───────────────────────────────────────────────
+        if request.user.email:
+            if status == 'PASS':
+                status_line = "✅ Result : PASS — Congratulations! You passed the exam."
+            elif status == 'CHEATING':
+                status_line = "⛔ Result : CHEATING DETECTED — Your exam has been flagged. Contact your administrator."
+            else:
+                status_line = "❌ Result : FAIL — Keep practising and try again if allowed."
+
+            send_student_email(
+                subject=f"📊 Exam Result – {exam.title}",
+                message=(
+                    f"Hello {request.user.get_full_name() or request.user.username},\n\n"
+                    f"Your result for the exam '{exam.title}' is now available.\n\n"
+                    f"  Marks Scored : {correct_count} / {questions.count()}\n"
+                    f"  Score        : {score:.1f}%\n"
+                    f"  Pass Mark    : {exam.pass_marks}%\n"
+                    f"  {status_line}\n\n"
+                    f"Invigilo Exam System"
+                ),
+                recipient_email=request.user.email,
+            )
 
         messages.success(request, f"Exam {exam.title} submitted successfully. Your score: {score}%")
         if request.user.is_admin():
@@ -307,3 +346,48 @@ def view_exam_results(request, exam_id):
 
     return render(request, 'exams/view_exam_results.html', {'exam': exam, 'results': unique_results})
 
+
+@role_required(['STAFF', 'ADMIN'])
+def export_exam_results_csv(request, exam_id):
+    """Download a CSV report of all student results for an exam."""
+    if request.user.is_admin():
+        exam = get_object_or_404(Exam, id=exam_id)
+    else:
+        exam = get_object_or_404(Exam, id=exam_id, created_by=request.user)
+
+    # Deduplicate: latest result per student, sorted by score desc
+    seen_students = set()
+    unique_results = []
+    for result in Result.objects.filter(exam=exam).select_related('student').order_by('student_id', '-submitted_at'):
+        if result.student_id not in seen_students:
+            seen_students.add(result.student_id)
+            unique_results.append(result)
+    unique_results.sort(key=lambda r: r.score, reverse=True)
+
+    # Build safe filename
+    safe_title = exam.title.replace(' ', '_').replace('/', '-')
+    filename = f"{safe_title}_results.csv"
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'Rank', 'Student Name', 'Username', 'Email',
+        'Marks Scored', 'Total Questions', 'Score (%)', 'Status', 'Submitted At'
+    ])
+
+    for rank, res in enumerate(unique_results, start=1):
+        writer.writerow([
+            rank,
+            res.student.get_full_name() or res.student.username,
+            res.student.username,
+            res.student.email,
+            res.correct_answers,
+            res.total_questions,
+            f"{res.score:.1f}",
+            res.status,
+            res.submitted_at.strftime('%Y-%m-%d %H:%M:%S'),
+        ])
+
+    return response

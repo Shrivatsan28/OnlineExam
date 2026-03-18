@@ -39,7 +39,9 @@
                         <a href="{% url 'view_logs_exam' exam.id %}"
                             style="color: var(--accent); text-decoration: none; margin-right: 1rem;">Logs</a>
                         <a href="{% url 'view_exam_results' exam.id %}"
-                            style="color: var(--text); text-decoration: none; font-weight: 600;">Results</a>
+                            style="color: var(--text); text-decoration: none; font-weight: 600; margin-right: 1rem;">Results</a>
+                        <a href="{% url 'export_exam_results_csv' exam.id %}"
+                            style="color: #22c55e; text-decoration: none; font-weight: 600;">&#x2B07; CSV</a>
                     </td>
                 </tr>
                 {% endfor %}

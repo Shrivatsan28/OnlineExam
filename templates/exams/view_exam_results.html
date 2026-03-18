@@ -1,4 +1,4 @@
-﻿{% extends 'base.html' %}
+{% extends 'base.html' %}
 
 {% block extra_css %}
 <style>
@@ -107,8 +107,14 @@
         <p class="leaderboard-title">Leaderboard &mdash; {{ exam.title }}</p>
         <p class="leaderboard-subtitle">{{ results|length }} student{{ results|length|pluralize }} submitted &nbsp;&bull;&nbsp; Ranked by marks</p>
     </div>
-    <a href="{% url 'staff_dashboard' %}" class="btn"
-        style="border: 1px solid rgba(255,255,255,0.2); color: var(--text);">Back to Dashboard</a>
+    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <a href="{% url 'export_exam_results_csv' exam.id %}" class="btn btn-primary"
+            style="display: inline-flex; align-items: center; gap: 0.5rem;">
+            <span>&#x2B07;</span> Download CSV
+        </a>
+        <a href="{% url 'staff_dashboard' %}" class="btn"
+            style="border: 1px solid rgba(255,255,255,0.2); color: var(--text);">Back to Dashboard</a>
+    </div>
 </div>
 
 {% if results %}
