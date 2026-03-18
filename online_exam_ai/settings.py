@@ -83,18 +83,28 @@ WSGI_APPLICATION = 'online_exam_ai.wsgi.application'
 
 # Check if we have a provided database URL (like on Railway).
 # If not, use SQLite as a safe fallback (e.g. during collectstatic build phase)
-if 'DATABASE_URL' in os.environ:
+import os
+import dj_database_url
+
+if os.environ.get("DATABASE_URL"):
+    # 🚀 Railway / Production
     DATABASES = {
-        'default': dj_database_url.config(
-            default=os.environ.get('DATABASE_URL'),
-            conn_max_age=60
+        'default': dj_database_url.parse(
+            os.environ.get("DATABASE_URL"),
+            conn_max_age=600,
+            ssl_require=True
         )
     }
 else:
+    # 💻 Local PostgreSQL
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'online_exam_db',
+            'USER': 'postgre',
+            'PASSWORD': 'Shri@2803',
+            'HOST': 'localhost',
+            'PORT': '5432',
         }
     }
 
