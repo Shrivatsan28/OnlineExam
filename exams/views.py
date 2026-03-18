@@ -341,8 +341,8 @@ def view_exam_results(request, exam_id):
             seen_students.add(result.student_id)
             unique_results.append(result)
 
-    # Sort by score descending for a leaderboard view
-    unique_results.sort(key=lambda r: r.score, reverse=True)
+    # Sort: score descending, then submission time ascending (earlier = better rank on tie)
+    unique_results.sort(key=lambda r: (-r.score, r.submitted_at))
 
     return render(request, 'exams/view_exam_results.html', {'exam': exam, 'results': unique_results})
 
@@ -362,7 +362,8 @@ def export_exam_results_csv(request, exam_id):
         if result.student_id not in seen_students:
             seen_students.add(result.student_id)
             unique_results.append(result)
-    unique_results.sort(key=lambda r: r.score, reverse=True)
+    # Sort: score descending, then submission time ascending (earlier = better rank on tie)
+    unique_results.sort(key=lambda r: (-r.score, r.submitted_at))
 
     # Build safe filename
     safe_title = exam.title.replace(' ', '_').replace('/', '-')
