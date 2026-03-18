@@ -1,25 +1,77 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
+
+{% block extra_css %}
+<style>
+    .result-wrapper {
+        max-width: 480px;
+        margin: 3rem auto;
+        text-align: center;
+    }
+    .result-badge {
+        display: inline-block;
+        padding: 1.2rem 3rem;
+        border-radius: 16px;
+        font-size: 2.5rem;
+        font-weight: 800;
+        letter-spacing: 4px;
+        margin-bottom: 1.5rem;
+    }
+    .result-badge.pass  { background: rgba(34,197,94,0.15); color: #22c55e; border: 2px solid #22c55e; }
+    .result-badge.fail  { background: rgba(239,68,68,0.15);  color: #ef4444; border: 2px solid #ef4444; }
+    .result-badge.cheat { background: rgba(251,146,60,0.15); color: #fb923c; border: 2px solid #fb923c; }
+    .result-exam-title { font-size: 1.3rem; font-weight: 600; margin-bottom: 0.4rem; }
+    .result-date { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 2rem; }
+    .result-info-box {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 14px;
+        padding: 1.5rem 2rem;
+        margin-bottom: 2rem;
+        text-align: left;
+    }
+    .result-info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        font-size: 0.95rem;
+    }
+    .result-info-row:last-child { border-bottom: none; }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="card" style="max-width: 500px; margin: 0 auto; text-align: center;">
-    <h1 style="color: var(--primary); font-size: 3rem; margin-bottom: 0;">{{ result.score }}%</h1>
-    <p style="color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px;">{{ result.status }}</p>
+<div class="result-wrapper">
 
-    <div style="margin: 2rem 0; padding: 2rem; background: rgba(255,255,255,0.03); border-radius: 12px;">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
-            <span>Total Questions</span>
+    <p class="result-exam-title">{{ result.exam.title }}</p>
+    <p class="result-date">Submitted on {{ result.submitted_at|date:"M d, Y H:i" }}</p>
+
+    {% if result.status == 'PASS' %}
+    <div class="result-badge pass">PASS</div>
+    <p style="color:#22c55e; font-size:1rem; margin-bottom:1.5rem;">Congratulations! You passed the exam.</p>
+    {% elif result.status == 'CHEATING' %}
+    <div class="result-badge cheat">DISQUALIFIED</div>
+    <p style="color:#fb923c; font-size:1rem; margin-bottom:1.5rem;">Your exam was flagged for violations.</p>
+    {% else %}
+    <div class="result-badge fail">FAIL</div>
+    <p style="color:#ef4444; font-size:1rem; margin-bottom:1.5rem;">Better luck next time.</p>
+    {% endif %}
+
+    <div class="result-info-box">
+        <div class="result-info-row">
+            <span style="color:var(--text-muted)">Exam</span>
+            <span>{{ result.exam.title }}</span>
+        </div>
+        <div class="result-info-row">
+            <span style="color:var(--text-muted)">Questions Attempted</span>
             <span>{{ result.total_questions }}</span>
         </div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
-            <span>Correct Answers</span>
-            <span style="color: var(--success)">{{ result.correct_answers }}</span>
-        </div>
-        <div style="display: flex; justify-content: space-between;">
-            <span>Submitted On</span>
-            <span>{{ result.submitted_at|date:"M d, Y H:i" }}</span>
+        <div class="result-info-row">
+            <span style="color:var(--text-muted)">Date</span>
+            <span>{{ result.submitted_at|date:"M d, Y" }}</span>
         </div>
     </div>
 
-    <a href="{% url 'student_dashboard' %}" class="btn btn-primary" style="padding: 1rem 3rem;">Back to Dashboard</a>
+    <a href="{% url 'student_dashboard' %}" class="btn btn-primary" style="padding:1rem 3rem;">Back to Dashboard</a>
 </div>
 {% endblock %}
