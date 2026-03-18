@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 
 {% block extra_css %}
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,7 +16,6 @@
         padding: 0.6rem 1.2rem;
         gap: 1rem;
     }
-
     .timer-label-text {
         font-size: 0.8rem;
         text-transform: uppercase;
@@ -24,7 +23,6 @@
         color: var(--text-muted);
         white-space: nowrap;
     }
-
     .timer-display {
         font-size: 1.8rem;
         font-weight: 700;
@@ -33,18 +31,14 @@
         min-width: 80px;
         text-align: center;
     }
-
-    /* Red pulse when ≤ 10 s remain on current question */
     .timer-bar.urgent .timer-display {
         color: #ef4444;
         animation: pulse-anim 0.7s infinite;
     }
-
     @keyframes pulse-anim {
         0%, 100% { transform: scale(1); }
         50%       { transform: scale(1.06); }
     }
-
     .progress-wrap {
         background: rgba(255,255,255,0.08);
         border-radius: 99px;
@@ -65,45 +59,46 @@
         margin: 0 auto;
         padding: 1.5rem 1rem;
     }
-
     .exam-title {
         font-size: clamp(1.2rem, 4vw, 1.8rem);
         font-weight: 700;
         margin-bottom: 0.3rem;
+        text-align: center;
     }
     .exam-meta {
         color: var(--text-muted);
         font-size: 0.85rem;
         margin-bottom: 1.5rem;
+        text-align: center;
     }
 
-    /* ===== QUESTION CARDS ===== */
+    /* ===== QUESTION CARDS - hidden by default, active shows one ===== */
     .question-card {
+        display: none;
         background: var(--card-bg);
         border-radius: 14px;
         padding: 1.5rem;
         border: 1px solid rgba(255,255,255,0.08);
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
     }
-
-    /* Highlight the currently active question (desktop) */
-    .question-card.active-q {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 2px rgba(99,102,241,0.18);
+    .question-card.active {
+        display: block;
+        animation: fadeIn 0.35s ease-out;
     }
-
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
     .question-text {
         font-size: clamp(0.95rem, 2.5vw, 1.1rem);
         font-weight: 500;
         margin-bottom: 1rem;
         line-height: 1.6;
     }
-
     .options-grid {
         display: grid;
         gap: 0.7rem;
     }
-
     .option-label {
         display: flex;
         align-items: center;
@@ -116,12 +111,10 @@
         font-size: 0.95rem;
         transition: background 0.2s, border-color 0.2s;
     }
-
     .option-label:hover {
         background: rgba(255,255,255,0.09);
         border-color: var(--accent);
     }
-
     .option-label input[type="radio"] {
         accent-color: var(--accent);
         width: 18px;
@@ -129,13 +122,38 @@
         flex-shrink: 0;
     }
 
-    .mobile-navigation { display: none; }
-
+    /* ===== UNIFIED NAVIGATION (all devices) ===== */
+    .exam-navigation {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 0.5rem;
+        padding: 0.8rem 0;
+    }
+    .exam-navigation .btn {
+        min-width: 110px;
+        text-align: center;
+        padding: 0.75rem 1.2rem;
+    }
+    .q-counter {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .submit-area {
+        display: none;
+        margin-top: 1rem;
+        text-align: center;
+    }
+    .submit-area.visible { display: block; }
     .submit-btn {
         padding: 0.9rem 3rem;
         font-size: 1rem;
         border-radius: 10px;
-        margin-top: 0.5rem;
+        width: 100%;
+        max-width: 320px;
     }
 
     /* ===== OVERLAYS ===== */
@@ -155,8 +173,6 @@
         max-width: 380px;
         width: 90%;
     }
-
-    /* Auto-advance toast (bottom) */
     #advance-toast {
         position: fixed;
         bottom: 1.5rem;
@@ -172,7 +188,6 @@
         display: none;
         white-space: nowrap;
     }
-
     #screen-lock {
         display: none;
         position: fixed;
@@ -186,45 +201,10 @@
         gap: 1.5rem;
     }
 
-    /* ===== MOBILE ===== */
-    @media (max-width: 640px) {
-        .exam-wrapper { padding: 0.8rem 0.6rem; }
-        .question-card { display: none; margin-bottom: 0; }
-        .question-card.active { display: block; }
-        .desktop-submit { display: none; }
-        .mobile-navigation {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 0.8rem;
-            padding: 1rem 0;
-        }
-        .mobile-navigation .btn {
-            flex: 1;
-            text-align: center;
-            padding: 0.75rem;
-        }
-        .q-counter {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            white-space: nowrap;
-        }
-        .mobile-submit-btn { display: none; }
-        .mobile-submit-btn.visible {
-            display: block;
-            width: 100%;
-            margin-top: 1rem;
-            padding: 0.9rem;
-            font-size: 1rem;
-        }
-    }
-
-    /* ===== TABLET / DESKTOP ===== */
-    @media (min-width: 641px) {
-        .question-card { display: block !important; }
-        .desktop-submit { display: inline-block; }
-        .mobile-navigation { display: none !important; }
-        .mobile-submit-btn { display: none !important; }
+    /* ===== RESPONSIVE TWEAKS ===== */
+    @media (max-width: 480px) {
+        .exam-navigation .btn { min-width: 80px; padding: 0.6rem 0.8rem; font-size: 0.85rem; }
+        .timer-display { font-size: 1.4rem; }
     }
 </style>
 {% endblock %}
@@ -233,7 +213,7 @@
 
 <!-- STICKY TIMER BAR -->
 <div class="timer-bar" id="timer-bar">
-    <span class="timer-label-text" id="timer-status-label">⏱ Q<span id="q-num">1</span> / {{ questions.count }}</span>
+    <span class="timer-label-text" id="timer-status-label">Q<span id="q-num">1</span> / {{ questions.count }}</span>
     <div class="timer-display" id="exam-timer">1:00</div>
     <div class="progress-wrap">
         <div class="progress-fill" id="progress-fill" style="width:100%;"></div>
@@ -249,7 +229,7 @@
         {% csrf_token %}
 
         {% for q in questions %}
-        <div class="question-card {% if forloop.first %}active active-q{% endif %}" data-index="{{ forloop.counter0 }}">
+        <div class="question-card" data-index="{{ forloop.counter0 }}">
             <p class="question-text">{{ forloop.counter }}. {{ q.question_text }}</p>
             <div class="options-grid">
                 <label class="option-label">
@@ -265,41 +245,42 @@
                     <input type="radio" name="question_{{ q.id }}" value="D"> {{ q.option_d }}
                 </label>
             </div>
-            {% if forloop.last %}
-            <button type="submit" class="btn btn-primary mobile-submit-btn" id="mobile-submit">Submit Exam</button>
-            {% endif %}
         </div>
         {% endfor %}
 
-        <div class="desktop-submit">
+        <!-- Unified navigation (all devices) -->
+        <div class="exam-navigation">
+            <button type="button" class="btn" id="prev-btn"
+                    style="background:rgba(255,255,255,0.07);"
+                    onclick="changeQuestion(-1)">Prev</button>
+            <span class="q-counter" id="q-counter">1 / {{ questions.count }}</span>
+            <button type="button" class="btn btn-primary" id="next-btn"
+                    onclick="changeQuestion(1)">Next</button>
+        </div>
+
+        <!-- Submit visible only on last question -->
+        <div class="submit-area" id="submit-area">
             <button type="submit" class="btn btn-primary submit-btn">Submit Exam</button>
         </div>
     </form>
-
-    <!-- Mobile Navigation -->
-    <div class="mobile-navigation" id="mobile-nav">
-        <button class="btn" id="prev-btn" onclick="changeMobileQuestion(-1)" style="background:rgba(255,255,255,0.07);">← Prev</button>
-        <span class="q-counter" id="m-q-counter">1 / {{ questions.count }}</span>
-        <button class="btn btn-primary" id="next-btn" onclick="changeMobileQuestion(1)">Next →</button>
-    </div>
 </div>
 
 <!-- AUTO ADVANCE TOAST -->
-<div id="advance-toast">⏩ Time's up! Moving to next question…</div>
+<div id="advance-toast">Time is up! Moving to next question...</div>
 
 <!-- AUTO SUBMIT NOTICE -->
 <div id="auto-submit-info" class="overlay-box">
-    <div style="font-size:2.5rem; margin-bottom:0.5rem;">📤</div>
+    <div style="font-size:2.5rem; margin-bottom:0.5rem;">&#128228;</div>
     <h2 style="margin-bottom:0.5rem;">Submitting Exam</h2>
-    <p>All question time used. Auto-submitting now…</p>
+    <p>All question time used. Auto-submitting now...</p>
 </div>
 
 <!-- FULLSCREEN LOCK -->
 <div id="screen-lock">
-    <div style="font-size:4rem;">⏳</div>
+    <div style="font-size:4rem;">&#8987;</div>
     <h1 style="color:var(--accent); font-size:2rem; margin:0;">Time Expired</h1>
     <p style="color:#94a3b8; font-size:1.1rem; max-width:400px;">
-        Your exam time has concluded.<br>Submission in progress…
+        Your exam time has concluded.<br>Submission in progress...
     </p>
 </div>
 
@@ -307,50 +288,67 @@
 
 {% block extra_js %}
 <script>
-// ─────────────────────────────────────────────────────────────────────────────
-//  PER-QUESTION 60-SECOND TIMER
-//  Each question gets exactly 60 seconds.
-//  On expiry → auto-advance to next question.
-//  Last question expiry → auto-submit the form.
-// ─────────────────────────────────────────────────────────────────────────────
+// CONFIG
+const examId  = "{{ exam.id }}";
+const TOTAL_Q = {{ questions.count }};
+const Q_TIME  = 60;
 
-const examId       = "{{ exam.id }}";
-const TOTAL_Q      = {{ questions.count }};
-const Q_TIME       = 60;          // seconds per question
-
+// DOM
+const allCards     = document.querySelectorAll('.question-card');
+const qNumSpan     = document.getElementById('q-num');
+const qCounterSpan = document.getElementById('q-counter');
 const timerDisplay = document.getElementById('exam-timer');
-const timerBar     = document.getElementById('timer-bar');
+const timerBarEl   = document.getElementById('timer-bar');
 const progressFill = document.getElementById('progress-fill');
 const timerLabel   = document.getElementById('timer-status-label');
-const qNumSpan     = document.getElementById('q-num');
+const prevBtn      = document.getElementById('prev-btn');
+const nextBtn      = document.getElementById('next-btn');
+const submitArea   = document.getElementById('submit-area');
 
-// ─── Desktop: track which question is "active" for highlighting ──────────────
-let desktopActiveIdx = 0;
-const allCards = document.querySelectorAll('.question-card');
-
-function setDesktopActive(idx) {
-    allCards.forEach(c => c.classList.remove('active-q'));
-    if (allCards[idx]) {
-        allCards[idx].classList.add('active-q');
-        // Smooth-scroll the newly active card into view
-        allCards[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-    desktopActiveIdx = idx;
-    qNumSpan.textContent = idx + 1;
-    timerLabel.textContent = `⏱ Q${idx + 1} / ${TOTAL_Q}`;
-}
-
-// ─── Timer state ─────────────────────────────────────────────────────────────
+// STATE
+let currentIdx    = 0;
 let timeLeft      = Q_TIME;
 let examSubmitted = false;
 let countdownInterval;
 
+// NAVIGATION
+function showQuestion(idx) {
+    if (idx < 0 || idx >= TOTAL_Q) return;
+
+    allCards.forEach(c => c.classList.remove('active'));
+    if (allCards[idx]) allCards[idx].classList.add('active');
+
+    currentIdx = idx;
+    const isLast = (idx === TOTAL_Q - 1);
+
+    if (qNumSpan)     qNumSpan.textContent     = idx + 1;
+    if (qCounterSpan) qCounterSpan.textContent = (idx + 1) + ' / ' + TOTAL_Q;
+    if (timerLabel)   timerLabel.textContent   = 'Q' + (idx + 1) + ' / ' + TOTAL_Q;
+
+    if (prevBtn) {
+        prevBtn.disabled      = (idx === 0);
+        prevBtn.style.opacity = (idx === 0) ? '0.4' : '1';
+    }
+    if (nextBtn)    nextBtn.style.display = isLast ? 'none' : 'inline-block';
+    if (submitArea) submitArea.classList.toggle('visible', isLast);
+
+    if (allCards[idx]) allCards[idx].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    resetQuestionTimer();
+}
+
+function changeQuestion(dir) {
+    if (examSubmitted) return;
+    showQuestion(currentIdx + dir);
+}
+
+// TIMER
 function pad(n) { return String(n).padStart(2, '0'); }
 
 function refreshDisplay() {
     const m = Math.floor(timeLeft / 60);
     const s = timeLeft % 60;
-    timerDisplay.textContent = `${pad(m)}:${pad(s)}`;
+    timerDisplay.textContent = pad(m) + ':' + pad(s);
 
     const pct = (timeLeft / Q_TIME) * 100;
     progressFill.style.width = pct + '%';
@@ -358,11 +356,11 @@ function refreshDisplay() {
     if (timeLeft <= 10) {
         progressFill.style.background = '#ef4444';
         timerDisplay.style.color      = '#ef4444';
-        timerBar.classList.add('urgent');
+        timerBarEl.classList.add('urgent');
     } else {
-        progressFill.style.background = '';   // reset to CSS var(--accent)
+        progressFill.style.background = '';
         timerDisplay.style.color      = '';
-        timerBar.classList.remove('urgent');
+        timerBarEl.classList.remove('urgent');
     }
 }
 
@@ -371,29 +369,14 @@ function resetQuestionTimer() {
     refreshDisplay();
 }
 
-// ─── Auto-advance / auto-submit ───────────────────────────────────────────────
 function onQuestionTimeExpired() {
-    const isLast = (desktopActiveIdx >= TOTAL_Q - 1);
-
-    if (isLast) {
-        // Last question → auto-submit
+    if (currentIdx >= TOTAL_Q - 1) {
         doAutoSubmit();
     } else {
-        // Show brief toast
-        const toast = document.getElementById('advance-toast');
+        var toast = document.getElementById('advance-toast');
         toast.style.display = 'block';
-        setTimeout(() => { toast.style.display = 'none'; }, 1800);
-
-        // Advance
-        const next = desktopActiveIdx + 1;
-        setDesktopActive(next);
-
-        // Also keep mobile view in sync
-        if (next < TOTAL_Q) {
-            showMobileQuestion(next);
-        }
-
-        resetQuestionTimer();
+        setTimeout(function() { toast.style.display = 'none'; }, 1800);
+        showQuestion(currentIdx + 1);
     }
 }
 
@@ -403,83 +386,44 @@ function doAutoSubmit() {
     clearInterval(countdownInterval);
 
     document.getElementById('auto-submit-info').style.display = 'block';
-    // Disable inputs to prevent last-second edits
     document.querySelectorAll('#exam-form input:not([name=csrfmiddlewaretoken]), #exam-form button')
-            .forEach(el => el.disabled = true);
+            .forEach(function(el) { el.disabled = true; });
 
-    setTimeout(() => {
+    setTimeout(function() {
         document.getElementById('auto-submit-info').style.display = 'none';
         document.getElementById('screen-lock').style.display = 'flex';
-        setTimeout(() => document.getElementById('exam-form').submit(), 800);
+        setTimeout(function() { document.getElementById('exam-form').submit(); }, 800);
     }, 2000);
 }
 
-// ─── Start the countdown ─────────────────────────────────────────────────────
-refreshDisplay();
+// INIT
+showQuestion(0);
 
-countdownInterval = setInterval(() => {
+countdownInterval = setInterval(function() {
     if (examSubmitted) return;
     timeLeft--;
     refreshDisplay();
-    if (timeLeft <= 0) {
-        onQuestionTimeExpired();
-    }
+    if (timeLeft <= 0) onQuestionTimeExpired();
 }, 1000);
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  MOBILE ONE-BY-ONE NAVIGATION
-// ─────────────────────────────────────────────────────────────────────────────
-let mobileCurrentQ = 0;
-const mCounter     = document.getElementById('m-q-counter');
-const prevBtn      = document.getElementById('prev-btn');
-const nextBtn      = document.getElementById('next-btn');
-const mobileSubmit = document.getElementById('mobile-submit');
-
-function showMobileQuestion(idx) {
-    allCards.forEach(c => c.classList.remove('active'));
-    if (allCards[idx]) allCards[idx].classList.add('active');
-    mobileCurrentQ = idx;
-
-    if (mCounter) mCounter.textContent = `${idx + 1} / ${TOTAL_Q}`;
-    if (prevBtn)  { prevBtn.disabled = idx === 0; prevBtn.style.opacity = idx === 0 ? '0.4' : '1'; }
-
-    const isLast = idx === TOTAL_Q - 1;
-    if (nextBtn)      nextBtn.style.display = isLast ? 'none' : '';
-    if (mobileSubmit) mobileSubmit.classList.toggle('visible', isLast);
-}
-
-function changeMobileQuestion(dir) {
-    const next = mobileCurrentQ + dir;
-    if (next >= 0 && next < TOTAL_Q) {
-        showMobileQuestion(next);
-        setDesktopActive(next);   // keep desktop highlight + timer label in sync
-        resetQuestionTimer();     // manual navigation also resets the timer
-    }
-}
-
-showMobileQuestion(0);
-setDesktopActive(0);
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  TAB-SWITCH DETECTION  (unchanged from original)
-// ─────────────────────────────────────────────────────────────────────────────
-let lastTabLog = 0;
-document.addEventListener('visibilitychange', () => {
+// TAB-SWITCH DETECTION
+var lastTabLog = 0;
+document.addEventListener('visibilitychange', function() {
     if (!document.hidden) return;
-    const now = Date.now();
+    var now = Date.now();
     if (now - lastTabLog < 5000) return;
     lastTabLog = now;
     fetch("{% url 'log_monitoring_event' %}", {
-        method: 'POST',
+        method : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ exam_id: examId, event_type: 'tab_switch', details: 'Student switched tab.' })
-    }).then(r => r.json()).then(data => {
+        body   : JSON.stringify({ exam_id: examId, event_type: 'tab_switch', details: 'Student switched tab.' })
+    }).then(function(r) { return r.json(); }).then(function(data) {
         if (data.auto_submit) {
             clearInterval(countdownInterval);
             examSubmitted = true;
-            const lock = document.getElementById('screen-lock');
+            var lock = document.getElementById('screen-lock');
             lock.querySelector('h1').textContent = 'Exam Terminated';
-            lock.querySelector('p').innerHTML = 'Multiple cheating violations detected.<br>Your exam has been auto-submitted.';
+            lock.querySelector('p').innerHTML    = 'Multiple cheating violations detected.<br>Your exam has been auto-submitted.';
             lock.style.display = 'flex';
         }
     });
